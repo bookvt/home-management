@@ -1,0 +1,4 @@
+DROP TABLE IF EXISTS documents;
+DROP TABLE IF EXISTS expenses;
+DROP TABLE IF EXISTS assets;
+DROP TABLE IF EXISTS maintenance;

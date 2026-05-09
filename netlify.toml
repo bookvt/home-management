@@ -1,0 +1,15 @@
+[build]
+  base    = "frontend"
+  command = "npm run build"
+  publish = ".next"
+
+[build.environment]
+  NODE_VERSION = "20"
+
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
+
+[[redirects]]
+  from   = "/api/*"
+  to     = ":NEXT_PUBLIC_API_URL/api/:splat"
+  status = 200
