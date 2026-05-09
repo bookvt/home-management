@@ -5,10 +5,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { DateInput } from "@/components/ui/date-input";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { DateInput } from "@/components/ui/date-input";
 import { maintenance as api } from "@/lib/api";
 import { formatDate, daysUntil } from "@/lib/utils";
 import { useToast } from "@/components/ui/use-toast";
@@ -55,57 +55,61 @@ export default function MaintenancePage() {
   const filtered = items.filter((m) => !filter || m.name.toLowerCase().includes(filter.toLowerCase()));
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="space-y-5">
+      {/* Page header */}
+      <div className="flex items-start justify-between gap-3">
         <div>
           <h1 className="text-xl font-semibold">การบำรุงรักษา</h1>
           <p className="mt-0.5 text-sm text-muted-foreground">บันทึกและติดตามการบำรุงรักษาบ้าน</p>
         </div>
-        <Button size="sm" onClick={openCreate}><Plus className="mr-1.5 h-4 w-4" />เพิ่มรายการ</Button>
+        <Button size="sm" onClick={openCreate} className="shrink-0"><Plus className="mr-1.5 h-4 w-4" />เพิ่มรายการ</Button>
       </div>
 
       <Input placeholder="ค้นหาชื่อรายการ…" value={filter} onChange={(e) => setFilter(e.target.value)} className="max-w-xs bg-white" />
 
+      {/* Table — scrollable on mobile */}
       <div className="rounded-xl border border-border bg-white overflow-hidden">
-        <Table>
-          <TableHeader>
-            <TableRow className="bg-muted/40 hover:bg-muted/40">
-              <TableHead className="text-xs font-medium">ชื่อรายการ</TableHead>
-              <TableHead className="text-xs font-medium">วันที่ดำเนินการ</TableHead>
-              <TableHead className="text-xs font-medium">วันครบกำหนดถัดไป</TableHead>
-              <TableHead className="text-xs font-medium">หมายเหตุ</TableHead>
-              <TableHead />
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {filtered.length === 0 && (
-              <TableRow><TableCell colSpan={5} className="py-10 text-center text-sm text-muted-foreground">ไม่มีข้อมูล</TableCell></TableRow>
-            )}
-            {filtered.map((m) => {
-              const days = daysUntil(m.next_due_date);
-              return (
-                <TableRow key={m.id} className="group">
-                  <TableCell className="font-medium">{m.name}</TableCell>
-                  <TableCell className="text-muted-foreground">{formatDate(m.date)}</TableCell>
-                  <TableCell>
-                    {m.next_due_date ? (
-                      <Badge variant={days !== null && days <= 14 ? "destructive" : days !== null && days <= 30 ? "warning" : "secondary"} className="text-xs">
-                        {formatDate(m.next_due_date)}
-                      </Badge>
-                    ) : <span className="text-muted-foreground">—</span>}
-                  </TableCell>
-                  <TableCell className="max-w-[200px] truncate text-sm text-muted-foreground">{m.notes || "—"}</TableCell>
-                  <TableCell>
-                    <div className="flex justify-end gap-1 opacity-0 transition-opacity group-hover:opacity-100">
-                      <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEdit(m)}><Pencil className="h-3.5 w-3.5" /></Button>
-                      <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive" onClick={() => remove(m.id)}><Trash2 className="h-3.5 w-3.5" /></Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              );
-            })}
-          </TableBody>
-        </Table>
+        <div className="overflow-x-auto">
+          <Table>
+            <TableHeader>
+              <TableRow className="bg-muted/40 hover:bg-muted/40">
+                <TableHead className="text-xs font-medium">ชื่อรายการ</TableHead>
+                <TableHead className="text-xs font-medium hidden sm:table-cell">วันที่ดำเนินการ</TableHead>
+                <TableHead className="text-xs font-medium">วันครบกำหนด</TableHead>
+                <TableHead className="text-xs font-medium hidden md:table-cell">หมายเหตุ</TableHead>
+                <TableHead />
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filtered.length === 0 && (
+                <TableRow><TableCell colSpan={5} className="py-10 text-center text-sm text-muted-foreground">ไม่มีข้อมูล</TableCell></TableRow>
+              )}
+              {filtered.map((m) => {
+                const days = daysUntil(m.next_due_date);
+                return (
+                  <TableRow key={m.id} className="group">
+                    <TableCell className="font-medium">{m.name}</TableCell>
+                    <TableCell className="text-muted-foreground hidden sm:table-cell">{formatDate(m.date)}</TableCell>
+                    <TableCell>
+                      {m.next_due_date ? (
+                        <Badge variant={days !== null && days <= 14 ? "destructive" : days !== null && days <= 30 ? "warning" : "secondary"} className="text-xs">
+                          {formatDate(m.next_due_date)}
+                        </Badge>
+                      ) : <span className="text-muted-foreground">—</span>}
+                    </TableCell>
+                    <TableCell className="max-w-[200px] truncate text-sm text-muted-foreground hidden md:table-cell">{m.notes || "—"}</TableCell>
+                    <TableCell>
+                      <div className="flex justify-end gap-1">
+                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEdit(m)}><Pencil className="h-3.5 w-3.5" /></Button>
+                        <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive" onClick={() => remove(m.id)}><Trash2 className="h-3.5 w-3.5" /></Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
+        </div>
       </div>
 
       <Dialog open={open} onOpenChange={setOpen}>

@@ -22,7 +22,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <div className="flex h-screen overflow-hidden bg-background">
           <Sidebar />
           <main className="flex-1 overflow-y-auto">
-            <div className="mx-auto max-w-5xl px-8 py-8">{children}</div>
+            {/* top padding on mobile for fixed header, bottom padding for bottom nav */}
+            <div className="mx-auto max-w-5xl px-4 pb-20 pt-16 md:px-8 md:pb-8 md:pt-8">
+              {children}
+            </div>
           </main>
         </div>
         <Toaster />

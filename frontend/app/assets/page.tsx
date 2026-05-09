@@ -6,11 +6,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { DateInput } from "@/components/ui/date-input";
-import { FileUpload } from "@/components/ui/file-upload";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { DateInput } from "@/components/ui/date-input";
+import { FileUpload } from "@/components/ui/file-upload";
 import { assets as api } from "@/lib/api";
 import { formatDate, formatCurrency, isExpiringSoon } from "@/lib/utils";
 import { useToast } from "@/components/ui/use-toast";
@@ -64,59 +64,61 @@ export default function AssetsPage() {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="space-y-5">
+      <div className="flex items-start justify-between gap-3">
         <div>
           <h1 className="text-xl font-semibold">ทรัพย์สิน</h1>
           <p className="mt-0.5 text-sm text-muted-foreground">รายการทรัพย์สินและอุปกรณ์ในบ้าน</p>
         </div>
-        <Button size="sm" onClick={openCreate}><Plus className="mr-1.5 h-4 w-4" />เพิ่มทรัพย์สิน</Button>
+        <Button size="sm" onClick={openCreate} className="shrink-0"><Plus className="mr-1.5 h-4 w-4" />เพิ่มทรัพย์สิน</Button>
       </div>
 
       <div className="rounded-xl border border-border bg-white overflow-hidden">
-        <Table>
-          <TableHeader>
-            <TableRow className="bg-muted/40 hover:bg-muted/40">
-              <TableHead className="text-xs font-medium w-14">รูป</TableHead>
-              <TableHead className="text-xs font-medium">ชื่อ</TableHead>
-              <TableHead className="text-xs font-medium">หมวดหมู่</TableHead>
-              <TableHead className="text-xs font-medium">ราคา</TableHead>
-              <TableHead className="text-xs font-medium">วันหมดประกัน</TableHead>
-              <TableHead />
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {items.length === 0 && (
-              <TableRow><TableCell colSpan={6} className="py-10 text-center text-sm text-muted-foreground">ยังไม่มีทรัพย์สิน</TableCell></TableRow>
-            )}
-            {items.map((a) => {
-              const expiring = isExpiringSoon(a.warranty_expiry, 90);
-              return (
-                <TableRow key={a.id} className="group">
-                  <TableCell>
-                    {a.image_url
-                      ? <Image src={a.image_url} alt={a.name} width={36} height={36} className="rounded-lg object-cover h-9 w-9 border border-border" />
-                      : <div className="h-9 w-9 rounded-lg bg-muted border border-border" />}
-                  </TableCell>
-                  <TableCell className="font-medium">{a.name}</TableCell>
-                  <TableCell className="text-muted-foreground">{a.category}</TableCell>
-                  <TableCell>{formatCurrency(a.price)}</TableCell>
-                  <TableCell>
-                    {a.warranty_expiry
-                      ? <Badge variant={expiring ? "warning" : "secondary"} className="text-xs gap-1">{expiring && <AlertTriangle className="h-3 w-3" />}{formatDate(a.warranty_expiry)}</Badge>
-                      : <span className="text-muted-foreground">—</span>}
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex justify-end gap-1 opacity-0 transition-opacity group-hover:opacity-100">
-                      <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEdit(a)}><Pencil className="h-3.5 w-3.5" /></Button>
-                      <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive" onClick={() => remove(a.id)}><Trash2 className="h-3.5 w-3.5" /></Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              );
-            })}
-          </TableBody>
-        </Table>
+        <div className="overflow-x-auto">
+          <Table>
+            <TableHeader>
+              <TableRow className="bg-muted/40 hover:bg-muted/40">
+                <TableHead className="text-xs font-medium w-14">รูป</TableHead>
+                <TableHead className="text-xs font-medium">ชื่อ</TableHead>
+                <TableHead className="text-xs font-medium hidden sm:table-cell">หมวดหมู่</TableHead>
+                <TableHead className="text-xs font-medium hidden sm:table-cell">ราคา</TableHead>
+                <TableHead className="text-xs font-medium">วันหมดประกัน</TableHead>
+                <TableHead />
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {items.length === 0 && (
+                <TableRow><TableCell colSpan={6} className="py-10 text-center text-sm text-muted-foreground">ยังไม่มีทรัพย์สิน</TableCell></TableRow>
+              )}
+              {items.map((a) => {
+                const expiring = isExpiringSoon(a.warranty_expiry, 90);
+                return (
+                  <TableRow key={a.id} className="group">
+                    <TableCell>
+                      {a.image_url
+                        ? <Image src={a.image_url} alt={a.name} width={36} height={36} className="rounded-lg object-cover h-9 w-9 border border-border" />
+                        : <div className="h-9 w-9 rounded-lg bg-muted border border-border" />}
+                    </TableCell>
+                    <TableCell className="font-medium">{a.name}</TableCell>
+                    <TableCell className="text-muted-foreground hidden sm:table-cell">{a.category}</TableCell>
+                    <TableCell className="hidden sm:table-cell">{formatCurrency(a.price)}</TableCell>
+                    <TableCell>
+                      {a.warranty_expiry
+                        ? <Badge variant={expiring ? "warning" : "secondary"} className="text-xs gap-1 whitespace-nowrap">{expiring && <AlertTriangle className="h-3 w-3" />}{formatDate(a.warranty_expiry)}</Badge>
+                        : <span className="text-muted-foreground">—</span>}
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex justify-end gap-1">
+                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEdit(a)}><Pencil className="h-3.5 w-3.5" /></Button>
+                        <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive" onClick={() => remove(a.id)}><Trash2 className="h-3.5 w-3.5" /></Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
+        </div>
       </div>
 
       <Dialog open={open} onOpenChange={setOpen}>

@@ -59,7 +59,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Detail sections */}
-      <div className="grid gap-5 lg:grid-cols-2">
+      <div className="grid gap-4 lg:grid-cols-2">
         <Section title="การบำรุงรักษาที่กำลังจะถึง">
           {data.upcoming_maintenance.length === 0 ? (
             <Empty text="ไม่มีรายการในอีก 90 วัน" />

@@ -6,22 +6,23 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { DateInput } from "@/components/ui/date-input";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { DateInput } from "@/components/ui/date-input";
 import { expenses as api } from "@/lib/api";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { useToast } from "@/components/ui/use-toast";
 import type { Expense, MonthlyTrend } from "@/types";
 
 const TYPES = [
-  { value: "electric", label: "ไฟฟ้า",       emoji: "⚡" },
-  { value: "water",    label: "น้ำประปา",     emoji: "💧" },
-  { value: "internet", label: "อินเทอร์เน็ต", emoji: "🌐" },
-  { value: "other",    label: "อื่นๆ",        emoji: "📦" },
+  { value: "electric", label: "ไฟฟ้า",        emoji: "⚡" },
+  { value: "water",    label: "น้ำประปา",      emoji: "💧" },
+  { value: "internet", label: "อินเทอร์เน็ต",  emoji: "🌐" },
+  { value: "other",    label: "อื่นๆ",         emoji: "📦" },
 ];
 const TYPE_COLORS: Record<string, string> = { electric: "#eab308", water: "#3b82f6", internet: "#22d3ee", other: "#f97316" };
 
@@ -90,13 +91,13 @@ export default function ExpensesPage() {
   const typeLabel = (v: string) => TYPES.find((t) => t.value === v)?.label ?? v;
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="space-y-5">
+      <div className="flex items-start justify-between gap-3">
         <div>
           <h1 className="text-xl font-semibold">ค่าใช้จ่าย</h1>
           <p className="mt-0.5 text-sm text-muted-foreground">บันทึกค่าบิลและค่าใช้จ่ายต่างๆ</p>
         </div>
-        <Button size="sm" onClick={openCreate}><Plus className="mr-1.5 h-4 w-4" />เพิ่มรายการ</Button>
+        <Button size="sm" onClick={openCreate} className="shrink-0"><Plus className="mr-1.5 h-4 w-4" />เพิ่มรายการ</Button>
       </div>
 
       <Tabs defaultValue="list">
@@ -108,63 +109,67 @@ export default function ExpensesPage() {
         <TabsContent value="list" className="mt-4 space-y-4">
           <Input placeholder="กรองตามเดือน เช่น 2024-01…" value={monthFilter} onChange={(e) => setMonthFilter(e.target.value)} className="max-w-xs bg-white" />
           <div className="rounded-xl border border-border bg-white overflow-hidden">
-            <Table>
-              <TableHeader>
-                <TableRow className="bg-muted/40 hover:bg-muted/40">
-                  <TableHead className="text-xs font-medium">ประเภท</TableHead>
-                  <TableHead className="text-xs font-medium">จำนวนเงิน</TableHead>
-                  <TableHead className="text-xs font-medium">เดือน / วันที่</TableHead>
-                  <TableHead className="text-xs font-medium">หมายเหตุ</TableHead>
-                  <TableHead />
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filtered.length === 0 && (
-                  <TableRow><TableCell colSpan={5} className="py-10 text-center text-sm text-muted-foreground">ไม่มีรายการค่าใช้จ่าย</TableCell></TableRow>
-                )}
-                {filtered.map((e) => (
-                  <TableRow key={e.id} className="group">
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <div className="h-2 w-2 rounded-full" style={{ background: TYPE_COLORS[e.type] ?? "#ccc" }} />
-                        {typeLabel(e.type)}
-                        {e.is_one_off && <Badge variant="secondary" className="text-xs">ครั้งเดียว</Badge>}
-                      </div>
-                    </TableCell>
-                    <TableCell className="font-medium">{formatCurrency(e.amount)}</TableCell>
-                    <TableCell className="text-muted-foreground">{e.is_one_off ? formatDate(e.date) : e.month}</TableCell>
-                    <TableCell className="max-w-[160px] truncate text-sm text-muted-foreground">{e.notes || "—"}</TableCell>
-                    <TableCell>
-                      <div className="flex justify-end gap-1 opacity-0 transition-opacity group-hover:opacity-100">
-                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEdit(e)}><Pencil className="h-3.5 w-3.5" /></Button>
-                        <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive" onClick={() => remove(e.id)}><Trash2 className="h-3.5 w-3.5" /></Button>
-                      </div>
-                    </TableCell>
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-muted/40 hover:bg-muted/40">
+                    <TableHead className="text-xs font-medium">ประเภท</TableHead>
+                    <TableHead className="text-xs font-medium">จำนวนเงิน</TableHead>
+                    <TableHead className="text-xs font-medium hidden sm:table-cell">เดือน / วันที่</TableHead>
+                    <TableHead className="text-xs font-medium hidden md:table-cell">หมายเหตุ</TableHead>
+                    <TableHead />
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {filtered.length === 0 && (
+                    <TableRow><TableCell colSpan={5} className="py-10 text-center text-sm text-muted-foreground">ไม่มีรายการค่าใช้จ่าย</TableCell></TableRow>
+                  )}
+                  {filtered.map((e) => (
+                    <TableRow key={e.id} className="group">
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <div className="h-2 w-2 shrink-0 rounded-full" style={{ background: TYPE_COLORS[e.type] ?? "#ccc" }} />
+                          <span className="whitespace-nowrap">{typeLabel(e.type)}</span>
+                          {e.is_one_off && <Badge variant="secondary" className="text-xs hidden sm:inline-flex">ครั้งเดียว</Badge>}
+                        </div>
+                      </TableCell>
+                      <TableCell className="font-medium whitespace-nowrap">{formatCurrency(e.amount)}</TableCell>
+                      <TableCell className="text-muted-foreground hidden sm:table-cell">{e.is_one_off ? formatDate(e.date) : e.month}</TableCell>
+                      <TableCell className="max-w-[160px] truncate text-sm text-muted-foreground hidden md:table-cell">{e.notes || "—"}</TableCell>
+                      <TableCell>
+                        <div className="flex justify-end gap-1">
+                          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEdit(e)}><Pencil className="h-3.5 w-3.5" /></Button>
+                          <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive" onClick={() => remove(e.id)}><Trash2 className="h-3.5 w-3.5" /></Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
           </div>
         </TabsContent>
 
         <TabsContent value="trends" className="mt-4">
-          <div className="rounded-xl border border-border bg-white p-6">
-            <h2 className="mb-5 text-sm font-medium">ค่าบิลรายเดือน (12 เดือนล่าสุด)</h2>
-            {chartData.length === 0
-              ? <p className="py-10 text-center text-sm text-muted-foreground">ยังไม่มีข้อมูล</p>
-              : (
-                <ResponsiveContainer width="100%" height={300}>
-                  <BarChart data={chartData} barSize={16}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(220 13% 91%)" vertical={false} />
-                    <XAxis dataKey="month" tick={{ fontSize: 12 }} tickLine={false} axisLine={false} />
-                    <YAxis tick={{ fontSize: 12 }} tickLine={false} axisLine={false} tickFormatter={(v) => `฿${v}`} />
-                    <Tooltip formatter={(v: number) => formatCurrency(v)} contentStyle={{ borderRadius: 8, border: "1px solid hsl(220 13% 91%)", fontSize: 13 }} />
-                    <Legend iconType="circle" iconSize={8} />
-                    {TYPES.map((t) => <Bar key={t.value} dataKey={t.value} stackId="a" fill={TYPE_COLORS[t.value]} name={t.label} radius={t.value === "other" ? [4, 4, 0, 0] : [0, 0, 0, 0]} />)}
-                  </BarChart>
-                </ResponsiveContainer>
-              )}
-          </div>
+          <Card>
+            <CardHeader><CardTitle className="text-sm font-medium">ค่าบิลรายเดือน (12 เดือนล่าสุด)</CardTitle></CardHeader>
+            <CardContent className="px-2 sm:px-6">
+              {chartData.length === 0
+                ? <p className="py-10 text-center text-sm text-muted-foreground">ยังไม่มีข้อมูล</p>
+                : (
+                  <ResponsiveContainer width="100%" height={280}>
+                    <BarChart data={chartData} barSize={14} margin={{ left: -10, right: 0 }}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(220 13% 91%)" vertical={false} />
+                      <XAxis dataKey="month" tick={{ fontSize: 11 }} tickLine={false} axisLine={false} />
+                      <YAxis tick={{ fontSize: 11 }} tickLine={false} axisLine={false} tickFormatter={(v) => `฿${v}`} width={55} />
+                      <Tooltip formatter={(v: number) => formatCurrency(v)} contentStyle={{ borderRadius: 8, border: "1px solid hsl(220 13% 91%)", fontSize: 13 }} />
+                      <Legend iconType="circle" iconSize={8} />
+                      {TYPES.map((t) => <Bar key={t.value} dataKey={t.value} stackId="a" fill={TYPE_COLORS[t.value]} name={t.label} radius={t.value === "other" ? [4, 4, 0, 0] : [0, 0, 0, 0]} />)}
+                    </BarChart>
+                  </ResponsiveContainer>
+                )}
+            </CardContent>
+          </Card>
         </TabsContent>
       </Tabs>
 
@@ -174,14 +179,10 @@ export default function ExpensesPage() {
           <div className="grid gap-4 py-2">
             <Field label="ประเภท">
               <Select value={form.type} onValueChange={(v) => setForm({ ...form, type: v })}>
-                <SelectTrigger>
-                  <TypeOption value={form.type} />
-                </SelectTrigger>
+                <SelectTrigger><TypeOption value={form.type} /></SelectTrigger>
                 <SelectContent>
                   {TYPES.map((t) => (
-                    <SelectItem key={t.value} value={t.value}>
-                      <TypeOption value={t.value} />
-                    </SelectItem>
+                    <SelectItem key={t.value} value={t.value}><TypeOption value={t.value} /></SelectItem>
                   ))}
                 </SelectContent>
               </Select>

@@ -5,11 +5,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { DateInput } from "@/components/ui/date-input";
-import { FileUpload } from "@/components/ui/file-upload";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { DateInput } from "@/components/ui/date-input";
+import { FileUpload } from "@/components/ui/file-upload";
 import { documents as api } from "@/lib/api";
 import { formatDate, isExpiringSoon } from "@/lib/utils";
 import { useToast } from "@/components/ui/use-toast";
@@ -57,64 +57,66 @@ export default function DocumentsPage() {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="space-y-5">
+      <div className="flex items-start justify-between gap-3">
         <div>
           <h1 className="text-xl font-semibold">เอกสาร</h1>
           <p className="mt-0.5 text-sm text-muted-foreground">จัดเก็บเอกสารสำคัญของบ้าน</p>
         </div>
-        <Button size="sm" onClick={openCreate}><Plus className="mr-1.5 h-4 w-4" />อัปโหลดเอกสาร</Button>
+        <Button size="sm" onClick={openCreate} className="shrink-0"><Plus className="mr-1.5 h-4 w-4" />อัปโหลดเอกสาร</Button>
       </div>
 
       <div className="rounded-xl border border-border bg-white overflow-hidden">
-        <Table>
-          <TableHeader>
-            <TableRow className="bg-muted/40 hover:bg-muted/40">
-              <TableHead className="text-xs font-medium">ชื่อเอกสาร</TableHead>
-              <TableHead className="text-xs font-medium">หมวดหมู่</TableHead>
-              <TableHead className="text-xs font-medium">วันหมดอายุ</TableHead>
-              <TableHead className="text-xs font-medium">หมายเหตุ</TableHead>
-              <TableHead className="text-xs font-medium">ไฟล์</TableHead>
-              <TableHead />
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {items.length === 0 && (
-              <TableRow><TableCell colSpan={6} className="py-10 text-center text-sm text-muted-foreground">ยังไม่มีเอกสาร</TableCell></TableRow>
-            )}
-            {items.map((d) => {
-              const expiring = isExpiringSoon(d.expiry_date, 60);
-              return (
-                <TableRow key={d.id} className="group">
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      <FileText className="h-4 w-4 shrink-0 text-muted-foreground" />
-                      <span className="font-medium">{d.title}</span>
-                    </div>
-                  </TableCell>
-                  <TableCell className="text-muted-foreground">{d.category}</TableCell>
-                  <TableCell>
-                    {d.expiry_date
-                      ? <Badge variant={expiring ? "warning" : "secondary"} className="text-xs gap-1">{expiring && <AlertTriangle className="h-3 w-3" />}{formatDate(d.expiry_date)}</Badge>
-                      : <span className="text-muted-foreground">—</span>}
-                  </TableCell>
-                  <TableCell className="max-w-[160px] truncate text-sm text-muted-foreground">{d.notes || "—"}</TableCell>
-                  <TableCell>
-                    <a href={d.file_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs text-primary hover:underline">
-                      เปิดไฟล์ <ExternalLink className="h-3 w-3" />
-                    </a>
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex justify-end gap-1 opacity-0 transition-opacity group-hover:opacity-100">
-                      <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEdit(d)}><Pencil className="h-3.5 w-3.5" /></Button>
-                      <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive" onClick={() => remove(d.id)}><Trash2 className="h-3.5 w-3.5" /></Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              );
-            })}
-          </TableBody>
-        </Table>
+        <div className="overflow-x-auto">
+          <Table>
+            <TableHeader>
+              <TableRow className="bg-muted/40 hover:bg-muted/40">
+                <TableHead className="text-xs font-medium">ชื่อเอกสาร</TableHead>
+                <TableHead className="text-xs font-medium hidden sm:table-cell">หมวดหมู่</TableHead>
+                <TableHead className="text-xs font-medium">วันหมดอายุ</TableHead>
+                <TableHead className="text-xs font-medium hidden md:table-cell">หมายเหตุ</TableHead>
+                <TableHead className="text-xs font-medium">ไฟล์</TableHead>
+                <TableHead />
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {items.length === 0 && (
+                <TableRow><TableCell colSpan={6} className="py-10 text-center text-sm text-muted-foreground">ยังไม่มีเอกสาร</TableCell></TableRow>
+              )}
+              {items.map((d) => {
+                const expiring = isExpiringSoon(d.expiry_date, 60);
+                return (
+                  <TableRow key={d.id} className="group">
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <FileText className="h-4 w-4 shrink-0 text-muted-foreground" />
+                        <span className="font-medium">{d.title}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-muted-foreground hidden sm:table-cell">{d.category}</TableCell>
+                    <TableCell>
+                      {d.expiry_date
+                        ? <Badge variant={expiring ? "warning" : "secondary"} className="text-xs gap-1 whitespace-nowrap">{expiring && <AlertTriangle className="h-3 w-3" />}{formatDate(d.expiry_date)}</Badge>
+                        : <span className="text-muted-foreground">—</span>}
+                    </TableCell>
+                    <TableCell className="max-w-[160px] truncate text-sm text-muted-foreground hidden md:table-cell">{d.notes || "—"}</TableCell>
+                    <TableCell>
+                      <a href={d.file_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs text-primary hover:underline whitespace-nowrap">
+                        เปิด <ExternalLink className="h-3 w-3" />
+                      </a>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex justify-end gap-1">
+                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEdit(d)}><Pencil className="h-3.5 w-3.5" /></Button>
+                        <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive" onClick={() => remove(d.id)}><Trash2 className="h-3.5 w-3.5" /></Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
+        </div>
       </div>
 
       <Dialog open={open} onOpenChange={setOpen}>
