@@ -1,6 +1,7 @@
 # Backend
 backend/.env
 backend/tmp/
+backend/server
 
 # Frontend
 frontend/.env.local

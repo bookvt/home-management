@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { DateInput } from "@/components/ui/date-input";
+import { FileUpload } from "@/components/ui/file-upload";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -36,110 +38,109 @@ export default function DocumentsPage() {
     try {
       if (form.file) {
         const fd = new FormData();
-        fd.append("title", form.title);
-        fd.append("category", form.category);
-        fd.append("notes", form.notes);
+        fd.append("title", form.title); fd.append("category", form.category); fd.append("notes", form.notes);
         if (form.expiry_date) fd.append("expiry_date", form.expiry_date);
         fd.append("file", form.file);
-        if (editing) await api.update(editing.id, fd);
-        else await api.create(fd);
+        if (editing) await api.update(editing.id, fd); else await api.create(fd);
       } else {
-        if (!editing) { toast({ variant: "destructive", title: "File is required" }); return; }
-        await api.update(editing.id, {
-          title: form.title, category: form.category, notes: form.notes,
-          expiry_date: form.expiry_date || null,
-        });
+        if (!editing) { toast({ variant: "destructive", title: "กรุณาเลือกไฟล์" }); return; }
+        await api.update(editing.id, { title: form.title, category: form.category, notes: form.notes, expiry_date: form.expiry_date || null });
       }
-      setOpen(false);
-      load();
-      toast({ title: editing ? "Updated" : "Uploaded" });
-    } catch (e) {
-      toast({ variant: "destructive", title: "Error", description: String(e) });
-    }
+      setOpen(false); load();
+      toast({ title: editing ? "อัปเดตแล้ว" : "อัปโหลดเอกสารแล้ว" });
+    } catch (e) { toast({ variant: "destructive", title: "เกิดข้อผิดพลาด", description: String(e) }); }
   };
 
   const remove = async (id: number) => {
-    if (!confirm("Delete this document?")) return;
-    await api.delete(id);
-    load();
-    toast({ title: "Deleted" });
+    if (!confirm("ต้องการลบเอกสารนี้ใช่หรือไม่?")) return;
+    await api.delete(id); load(); toast({ title: "ลบแล้ว" });
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold">Documents Vault</h1>
-        <Button onClick={openCreate}><Plus className="mr-2 h-4 w-4" />Upload Document</Button>
+        <div>
+          <h1 className="text-xl font-semibold">เอกสาร</h1>
+          <p className="mt-0.5 text-sm text-muted-foreground">จัดเก็บเอกสารสำคัญของบ้าน</p>
+        </div>
+        <Button size="sm" onClick={openCreate}><Plus className="mr-1.5 h-4 w-4" />อัปโหลดเอกสาร</Button>
       </div>
 
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Title</TableHead>
-            <TableHead>Category</TableHead>
-            <TableHead>Expiry</TableHead>
-            <TableHead>Notes</TableHead>
-            <TableHead>File</TableHead>
-            <TableHead />
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {items.length === 0 && (
-            <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground">No documents yet.</TableCell></TableRow>
-          )}
-          {items.map((d) => {
-            const expiring = isExpiringSoon(d.expiry_date, 60);
-            return (
-              <TableRow key={d.id}>
-                <TableCell className="font-medium flex items-center gap-2">
-                  <FileText className="h-4 w-4 text-muted-foreground" />{d.title}
-                </TableCell>
-                <TableCell>{d.category}</TableCell>
-                <TableCell>
-                  {d.expiry_date ? (
-                    <Badge variant={expiring ? "warning" : "secondary"}>
-                      {expiring && <AlertTriangle className="mr-1 h-3 w-3" />}
-                      {formatDate(d.expiry_date)}
-                    </Badge>
-                  ) : "—"}
-                </TableCell>
-                <TableCell className="max-w-xs truncate text-muted-foreground">{d.notes}</TableCell>
-                <TableCell>
-                  <a href={d.file_url} target="_blank" rel="noopener noreferrer">
-                    <Button variant="ghost" size="icon"><ExternalLink className="h-4 w-4" /></Button>
-                  </a>
-                </TableCell>
-                <TableCell>
-                  <div className="flex gap-2">
-                    <Button variant="ghost" size="icon" onClick={() => openEdit(d)}><Pencil className="h-4 w-4" /></Button>
-                    <Button variant="ghost" size="icon" onClick={() => remove(d.id)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
-                  </div>
-                </TableCell>
-              </TableRow>
-            );
-          })}
-        </TableBody>
-      </Table>
+      <div className="rounded-xl border border-border bg-white overflow-hidden">
+        <Table>
+          <TableHeader>
+            <TableRow className="bg-muted/40 hover:bg-muted/40">
+              <TableHead className="text-xs font-medium">ชื่อเอกสาร</TableHead>
+              <TableHead className="text-xs font-medium">หมวดหมู่</TableHead>
+              <TableHead className="text-xs font-medium">วันหมดอายุ</TableHead>
+              <TableHead className="text-xs font-medium">หมายเหตุ</TableHead>
+              <TableHead className="text-xs font-medium">ไฟล์</TableHead>
+              <TableHead />
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {items.length === 0 && (
+              <TableRow><TableCell colSpan={6} className="py-10 text-center text-sm text-muted-foreground">ยังไม่มีเอกสาร</TableCell></TableRow>
+            )}
+            {items.map((d) => {
+              const expiring = isExpiringSoon(d.expiry_date, 60);
+              return (
+                <TableRow key={d.id} className="group">
+                  <TableCell>
+                    <div className="flex items-center gap-2">
+                      <FileText className="h-4 w-4 shrink-0 text-muted-foreground" />
+                      <span className="font-medium">{d.title}</span>
+                    </div>
+                  </TableCell>
+                  <TableCell className="text-muted-foreground">{d.category}</TableCell>
+                  <TableCell>
+                    {d.expiry_date
+                      ? <Badge variant={expiring ? "warning" : "secondary"} className="text-xs gap-1">{expiring && <AlertTriangle className="h-3 w-3" />}{formatDate(d.expiry_date)}</Badge>
+                      : <span className="text-muted-foreground">—</span>}
+                  </TableCell>
+                  <TableCell className="max-w-[160px] truncate text-sm text-muted-foreground">{d.notes || "—"}</TableCell>
+                  <TableCell>
+                    <a href={d.file_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs text-primary hover:underline">
+                      เปิดไฟล์ <ExternalLink className="h-3 w-3" />
+                    </a>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex justify-end gap-1 opacity-0 transition-opacity group-hover:opacity-100">
+                      <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEdit(d)}><Pencil className="h-3.5 w-3.5" /></Button>
+                      <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive" onClick={() => remove(d.id)}><Trash2 className="h-3.5 w-3.5" /></Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              );
+            })}
+          </TableBody>
+        </Table>
+      </div>
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent>
-          <DialogHeader><DialogTitle>{editing ? "Edit" : "Upload"} Document</DialogTitle></DialogHeader>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader><DialogTitle>{editing ? "แก้ไขเอกสาร" : "อัปโหลดเอกสาร"}</DialogTitle></DialogHeader>
           <div className="grid gap-4 py-2">
-            <div className="grid gap-1.5"><Label>Title</Label><Input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} /></div>
-            <div className="grid gap-1.5"><Label>Category</Label><Input value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} /></div>
-            <div className="grid gap-1.5"><Label>Expiry Date</Label><Input type="date" value={form.expiry_date} onChange={(e) => setForm({ ...form, expiry_date: e.target.value })} /></div>
-            <div className="grid gap-1.5"><Label>Notes</Label><Textarea value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} /></div>
-            <div className="grid gap-1.5">
-              <Label>File (PDF / Image) {editing && <span className="text-muted-foreground text-xs">(leave empty to keep existing)</span>}</Label>
-              <Input type="file" accept=".pdf,image/*" onChange={(e) => setForm({ ...form, file: e.target.files?.[0] ?? null })} />
+            <Field label="ชื่อเอกสาร"><Input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder="เช่น ประกันภัยบ้าน" /></Field>
+            <div className="grid grid-cols-2 gap-3">
+              <Field label="หมวดหมู่"><Input value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} placeholder="เช่น ประกัน" /></Field>
+              <Field label="วันหมดอายุ"><DateInput value={form.expiry_date} onChange={(e) => setForm({ ...form, expiry_date: e.target.value })} /></Field>
             </div>
+            <Field label="หมายเหตุ"><Textarea value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} rows={2} /></Field>
+            <Field label={`ไฟล์ PDF / รูปภาพ${editing ? " (เว้นว่างเพื่อคงไฟล์เดิม)" : ""}`}>
+              <FileUpload accept=".pdf,image/*" value={form.file} onChange={(f) => setForm({ ...form, file: f })} placeholder="คลิกเพื่อเลือกไฟล์ PDF หรือรูปภาพ" />
+            </Field>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
-            <Button onClick={save}>Save</Button>
+            <Button variant="outline" onClick={() => setOpen(false)}>ยกเลิก</Button>
+            <Button onClick={save}>บันทึก</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
   );
+}
+
+function Field({ label, children }: { label: string; children: React.ReactNode }) {
+  return <div className="grid gap-1.5"><Label className="text-xs font-medium text-muted-foreground">{label}</Label>{children}</div>;
 }
